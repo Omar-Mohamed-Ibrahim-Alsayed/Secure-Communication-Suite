@@ -1,7 +1,8 @@
-from ctr import CTR
+from utilities.ctr import CTR
 
 import hmac
 import numpy as np
+from hash import sha256_hash
 import hashlib
 
 
@@ -175,14 +176,9 @@ class AES:
         cipher = AES(password_str=self.password, salt=salt, key_len=self.key_len)
 
         # Compare HMAC values
-        assert hmac.compare_digest(
-            hmac_val,
-            hmac.digest(
-                key=cipher.hmac_key,
-                msg=ciphertext,
-                digest=hashlib.sha256,
-            ),
-        ), "HMAC check failed."
+        hmac_val = sha256_hash(ciphertext)
+        assert hmac.compare_digest(hmac_val, cipher.hmac_key), "HMAC check failed."
+
 
         # Start CTR mode with provided nonce
         mode = CTR(cipher, nonce)
