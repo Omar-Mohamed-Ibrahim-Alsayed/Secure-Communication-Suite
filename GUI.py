@@ -1,68 +1,65 @@
 import tkinter as tk
-from blockCipher import AES
-import secrets
-import hmac
-from PKC import generate_keys
-import hashlib
-from utilities.ctr import CTR
+from tkinter import ttk
+from used_models.blockCiphers import AESCipher,DESCipher
+from Crypto import Random
 
-
-class AES_GUI:
+class AppGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("AES Encryption/Decryption")
-        self.root.config(bg="#333333")  # Dark background color
+        self.root.title("Encryption/Decryption Tool")
 
-        self.input_label = tk.Label(self.root, text="Enter Text:", font=("Arial", 12), bg="#333333", fg="#ffffff")  # White text on dark background
-        self.input_label.pack(pady=10)
+        self.label_key = ttk.Label(self.root, text="Enter Key:")
+        self.label_key.pack()
+        self.entry_key = ttk.Entry(self.root, show='*')
+        self.entry_key.pack()
 
-        self.input_text = tk.Text(self.root, height=5, width=50, font=("Arial", 10), bg="#555555", fg="#ffffff")  # White text on dark background
-        self.input_text.pack(padx=10)
+        self.label_text = ttk.Label(self.root, text="Enter Text:")
+        self.label_text.pack()
+        self.entry_text = ttk.Entry(self.root)
+        self.entry_text.pack()
 
-        _ , self.password = generate_keys()
+        self.btn_encrypt_aes = ttk.Button(self.root, text="Encrypt (AES)", command=self.encrypt_aes)
+        self.btn_encrypt_aes.pack()
+        self.btn_decrypt_aes = ttk.Button(self.root, text="Decrypt (AES)", command=self.decrypt_aes)
+        self.btn_decrypt_aes.pack()
 
-        self.encrypt_button = tk.Button(
-            self.root, text="Encrypt", command=self.encrypt_text, font=("Arial", 12), bg="#007bff", fg="#ffffff"  # Blue background with white text
-        )
-        self.encrypt_button.pack(pady=10)
+        self.btn_encrypt_des = ttk.Button(self.root, text="Encrypt (DES)", command=self.encrypt_des)
+        self.btn_encrypt_des.pack()
+        self.btn_decrypt_des = ttk.Button(self.root, text="Decrypt (DES)", command=self.decrypt_des)
+        self.btn_decrypt_des.pack()
 
-        self.decrypt_button = tk.Button(
-            self.root, text="Decrypt", command=self.decrypt_text, font=("Arial", 12), bg="#dc3545", fg="#ffffff"  # Red background with white text
-        )
-        self.decrypt_button.pack(pady=5)
+        self.output_label = ttk.Label(self.root, text="")
+        self.output_label.pack()
 
-    def encrypt_text(self):
-        plaintext = self.input_text.get("1.0", "end-1c")
-        password = self.password
-        salt = secrets.token_bytes(16)
-        nonce = secrets.token_bytes(10)
-        cipher = AES(password_str=password, salt=salt, key_len=256)
-        mode = CTR(cipher, nonce)
-        ciphertext = salt + nonce + mode.encrypt(plaintext.encode(), 0)
-        hmac_val = hmac.digest(
-            key=cipher.hmac_key, msg=ciphertext, digest=hashlib.sha256
-        )
-        ciphertext += hmac_val
+    def encrypt_aes(self):
+        key = self.entry_key.get()
+        text = self.entry_text.get()
+        cipher = AESCipher(key)
+        encrypted = cipher.encrypt(text)
+        self.output_label.config(text=f"Encrypted (AES): {encrypted.decode()}")
 
-        self.input_text.delete("1.0", "end")
-        self.input_text.insert("1.0", ciphertext.hex())
+    def decrypt_aes(self):
+        key = self.entry_key.get()
+        text = self.entry_text.get()
+        cipher = AESCipher(key)
+        decrypted = cipher.decrypt(text.encode())
+        self.output_label.config(text=f"Decrypted (AES): {decrypted}")
 
-    def decrypt_text(self):
-        ciphertext = bytes.fromhex(self.input_text.get("1.0", "end-1c"))
-        password = self.password
-        salt = ciphertext[:16]
-        nonce = ciphertext[16:26]
-        ciphertext = ciphertext[26:-32]
-        cipher = AES(password_str=password, salt=salt, key_len=256)
+    def encrypt_des(self):
+        key = self.entry_key.get()
+        text = self.entry_text.get()
+        cipher = DESCipher(key)
+        encrypted = cipher.encrypt(text)
+        self.output_label.config(text=f"Encrypted (DES): {encrypted.decode()}")
 
-        mode = CTR(cipher, nonce)
-        plaintext = mode.decrypt(ciphertext, 0)
-
-        self.input_text.delete("1.0", "end")
-        self.input_text.insert("1.0", plaintext.decode())
+    def decrypt_des(self):
+        key = self.entry_key.get()
+        text = self.entry_text.get()
+        cipher = DESCipher(key)
+        decrypted = cipher.decrypt(text.encode())
+        self.output_label.config(text=f"Decrypted (DES): {decrypted}")
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("500x400")
-    aes_gui = AES_GUI(root)
+    app = AppGUI(root)
     root.mainloop()
