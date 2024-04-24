@@ -1,50 +1,50 @@
-import tkinter as tk
-from used_models.blockCiphers import AESCipher  # Import AESCipher from your block cipher file
-from used_models.ASCipher import RSAKeyExchange  # Import RSAKeyExchange from your public key cryptosystem file
 import socket
-
-class SenderGUI:
-    def __init__(self, root):
-        self.aes_cipher = AESCipher('your_aes_key')
-        self.rsa_key_exchange = RSAKeyExchange()
-        self.root = root
-        self.root.title("Sender")
-        
-        self.label = tk.Label(root, text="Enter your message:")
-        self.label.pack()
-        
-        self.entry = tk.Entry(root, width=50)
-        self.entry.pack()
-        
-        self.encrypt_button = tk.Button(root, text="Encrypt and Send", command=self.encrypt_and_send)
-        self.encrypt_button.pack()
+from used_models.blockCiphers import AESCipher
+from used_models.ASCipher import RSAKeyExchange
+import time
 
 
-    def encrypt_and_send(self):
-        # Encrypt the message using AES
-        message = self.entry.get()
-        encrypted_message = self.aes_cipher.encrypt(message)
 
-        # Encrypt the AES key using RSA
-        recipient_public_key = 'recipient_public_key'
-        encrypted_aes_key = self.rsa_key_exchange.encrypt_symmetric_key(self.aes_cipher.key, recipient_public_key)
+# Create a socket
+sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+receiver_address = ('127.0.0.1', 8888)  # Update the port to 8888
+sender_socket.connect(receiver_address)
 
-        # Combine encrypted message and AES key
-        combined_message = encrypted_aes_key + b'|' + encrypted_message
+# Instantiate block cipher objects
+aes_cipher = AESCipher("your_aes_key")  # Consider secure key generation
 
-        # Send the combined message to the receiver
-        self.send_message(combined_message)
+# Instantiate public key crypto objects
+rsa_key_exchange = RSAKeyExchange()
 
-    def send_message(self, message):
-        # Establish a socket connection and send the message to the receiver
-        # Replace 'host' and 'port' with appropriate values
-        host = 'localhost'
-        port = 12345
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((host, port))
-            s.sendall(message)
+# Generate a message to be sent
+plaintext_message = "Hello, this is a secure message!"
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    sender_gui = SenderGUI(root)
-    root.mainloop()
+# Encrypt the message using AES
+encrypted_message = aes_cipher.encrypt(plaintext_message)
+
+# Generate a symmetric key to be used for encryption
+symmetric_key = "shared_symmetric_key"  # Consider secure key generation
+
+# Get the public key from RSAKeyExchange
+public_key = rsa_key_exchange.get_public_key()
+# Encode the public key in PEM format before sending
+sender_socket.send(public_key)
+print(public_key)
+time.sleep(1)
+
+
+# Encrypt the symmetric key using RSA for key exchange
+encrypted_symmetric_key = rsa_key_exchange.encrypt_symmetric_key(symmetric_key, public_key)
+
+# Pad the encrypted symmetric key to a fixed length (e.g., 256 bytes for RSA 2048-bit keys)
+padded_encrypted_symmetric_key = encrypted_symmetric_key + b'\0' * (256 - len(encrypted_symmetric_key))
+
+# Send the encrypted message and the padded encrypted symmetric key to the receiver
+sender_socket.send(encrypted_message)
+time.sleep(1)
+
+sender_socket.send(padded_encrypted_symmetric_key)
+
+# Close the socket after sending
+sender_socket.close()
+
