@@ -1,46 +1,23 @@
-from used_models.blockCiphers import AESCipher, DESCipher
-from used_models.ASCipher import RSAKeyExchange, ECCKeyExchange
+import socket
+import time
+from used_models.PKC import RSAKeyExchange
 
-# Instantiate block cipher objects
-aes_cipher = AESCipher("your_aes_key")
-des_cipher = DESCipher("your_des")
+hacker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+receiver_address = ('127.0.0.1', 8888)
+hacker_socket.bind(receiver_address)
+hacker_socket.listen(1)
 
-# Instantiate public key crypto objects
+print("Hacker waiting for connection...")
+receiver_socket, receiver_address = hacker_socket.accept()
+print("Connection established with:", receiver_address)
 rsa_key_exchange = RSAKeyExchange()
-ecc_key_exchange = ECCKeyExchange()
 
-# Example usage
-plaintext_message = "Hello, this is a secure message!"
-encrypted_aes = aes_cipher.encrypt(plaintext_message)
-decrypted_aes = aes_cipher.decrypt(encrypted_aes)
-print("AES Encrypted:", encrypted_aes)
-print("AES Decrypted:", decrypted_aes)
+public_key = rsa_key_exchange.get_public_key()
+receiver_socket.send(public_key)
+time.sleep(1)
 
-encrypted_des = des_cipher.encrypt(plaintext_message)
-decrypted_des = des_cipher.decrypt(encrypted_des)
-print("DES Encrypted:", encrypted_des)
-print("DES Decrypted:", decrypted_des)
+encrypted_message = receiver_socket.recv(4096)
+print("Received Message:", encrypted_message)
 
-# Key exchange example (using RSA for simplicity)
-alice_public_key = rsa_key_exchange.get_public_key()
-bob_encrypted_symmetric_key = rsa_key_exchange.encrypt_symmetric_key(
-    "shared_symmetric_key", alice_public_key
-)
-print("Encrypted Symmetric Key with RSA:", bob_encrypted_symmetric_key)
-
-# Decrypting the symmetric key using RSA private key
-decrypted_symmetric_key = rsa_key_exchange.decrypt_symmetric_key(
-    bob_encrypted_symmetric_key
-)
-print("Decrypted Symmetric Key with RSA:", decrypted_symmetric_key)
-
-# Now use the decrypted symmetric key for AES or DES encryption/decryption
-encrypted_with_aes = aes_cipher.encrypt(decrypted_symmetric_key)
-decrypted_with_aes = aes_cipher.decrypt(encrypted_with_aes)
-print("AES Encrypted with Decrypted Symmetric Key:", encrypted_with_aes)
-print("AES Decrypted with Decrypted Symmetric Key:", decrypted_with_aes)
-
-encrypted_with_des = des_cipher.encrypt(decrypted_symmetric_key)
-decrypted_with_des = des_cipher.decrypt(encrypted_with_des)
-print("DES Encrypted with Decrypted Symmetric Key:", encrypted_with_des)
-print("DES Decrypted with Decrypted Symmetric Key:", decrypted_with_des)
+receiver_socket.close()
+hacker_socket.close()

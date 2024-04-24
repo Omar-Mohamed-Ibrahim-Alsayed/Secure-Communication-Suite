@@ -35,6 +35,8 @@ class RSAKeyExchange(object):
 
     
     def decrypt_symmetric_key(self, encrypted_symmetric_key):
+        if isinstance(encrypted_symmetric_key, str):
+            encrypted_symmetric_key = encrypted_symmetric_key.encode('utf-8')
         cipher_rsa = PKCS1_OAEP.new(self.private_key)
         decrypted_symmetric_key = cipher_rsa.decrypt(encrypted_symmetric_key)
         return decrypted_symmetric_key.decode('utf-8')
