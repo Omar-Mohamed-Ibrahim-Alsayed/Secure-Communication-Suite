@@ -1,14 +1,12 @@
 import tkinter as tk
-from tkinter import messagebox
 import socket
 from used_models.blockCiphers import AESCipher
 from used_models.PKC import RSAKeyExchange
 from used_models.keyManagement import KeyManager
 from used_models.authentication import Authenticator
 import time
-from cryptography.hazmat.primitives.asymmetric import rsa
 import cryptography.x509
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import Encoding,PublicFormat
 
 class SenderApp:
     def __init__(self, master):
@@ -75,6 +73,7 @@ class SenderApp:
         plaintext_message = self.entry_message.get()
 
         try:   
+                        
             km = KeyManager()
 
             # Exchanging public keys
@@ -82,19 +81,17 @@ class SenderApp:
 
             # Key Generation 
             keys = km.generate_keys()
-
-            # Generate certificate using the correct public key
-            cert_key = rsa.generate_private_key(
-                public_exponent=65537,
-                key_size=2048,
-                backend=default_backend()
+            pub = keys.public_key().public_bytes(
+                encoding=Encoding.PEM,  # Use PEM encoding for the public key
+                format=PublicFormat.SubjectPublicKeyInfo  # SubjectPublicKeyInfo format for the public key
             )
+            self.sender_socket.send(pub)
 
-            sender_certificate = Authenticator.generate_self_signed_certificate(cert_key, "sender_cert")
+            # Generate and send certificate 
+            sender_certificate = Authenticator.generate_self_signed_certificate(keys, "sender_cert")
             print('Generated cert')
             self.sender_socket.send(sender_certificate.public_bytes(encoding=cryptography.hazmat.primitives.serialization.Encoding.PEM))
             print('Sent cert')
-
             symmetric_key = km.generate_symm(received_public_key)
 
             keys = km.load_decrypted_keys('encrypted_keys.bin')

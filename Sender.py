@@ -5,7 +5,9 @@ from used_models.authentication import Authenticator
 import time
 import cryptography.hazmat.primitives.serialization
 from used_models.keyManagement import KeyManager
-from cryptography.hazmat.primitives.serialization import Encoding,PublicFormat, PrivateFormat, NoEncryption
+from cryptography.hazmat.primitives.serialization import Encoding,PublicFormat
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from cryptography.hazmat.backends import default_backend
 
 
 sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,23 +47,24 @@ sender_socket.connect(receiver_address)
 km = KeyManager()
 
 # Exchanging public keys
-received_public_key = sender_socket.recv(4096)
+received_public_key_bytes = sender_socket.recv(4096)
+received_public_key = load_pem_public_key(received_public_key_bytes, backend=default_backend())
 
 # Key Generation 
 keys = km.generate_keys()
 pub = keys.public_key().public_bytes(
-    encoding=Encoding.PEM,  # Use PEM encoding for the public key
-    format=PublicFormat.SubjectPublicKeyInfo  # SubjectPublicKeyInfo format for the public key
+    encoding=Encoding.PEM, 
+    format=PublicFormat.SubjectPublicKeyInfo 
 )
 sender_socket.send(pub)
-
+time.sleep(1)
 # Generate and send certificate 
 sender_certificate = Authenticator.generate_self_signed_certificate(keys, "sender_cert")
 print('Generated cert')
 sender_socket.send(sender_certificate.public_bytes(encoding=cryptography.hazmat.primitives.serialization.Encoding.PEM))
 print('Sent cert')
 
-symmetric_key = km.generate_symm(received_public_key)
+symmetric_key = km.generate_symm(received_public_key_bytes)
 
 keys = km.load_decrypted_keys('encrypted_keys.bin')
 print('Got keys')
@@ -76,14 +79,19 @@ rsa_key_exchange = RSAKeyExchange()
 
 encrypted_message = aes_cipher.encrypt(plaintext_message)
 
-rsa_key_exchange.set_received_public_key(received_public_key)
+rsa_key_exchange.set_received_public_key(received_public_key_bytes)
 
-encrypted_symmetric_key = rsa_key_exchange.encrypt_symmetric_key(symmetric_key, received_public_key)
 
-padded_encrypted_symmetric_key = encrypted_symmetric_key + b'\0' * (256 - len(encrypted_symmetric_key))
+try:
+    encrypted_symmetric_key = rsa_key_exchange.encrypt_symmetric_key(symmetric_key, received_public_key_bytes)
 
-sender_socket.send(encrypted_message)
-time.sleep(1)
-sender_socket.send(padded_encrypted_symmetric_key)
+    padded_encrypted_symmetric_key = encrypted_symmetric_key + b'\0' * (256 - len(encrypted_symmetric_key))
 
-sender_socket.close()
+    sender_socket.send(encrypted_message)
+    time.sleep(1)
+    sender_socket.send(padded_encrypted_symmetric_key)
+    print("Sent")
+
+    sender_socket.close()
+except ValueError as e:
+    print("Error decrypting symmetric key or message:", e)

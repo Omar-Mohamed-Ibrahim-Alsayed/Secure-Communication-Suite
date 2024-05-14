@@ -7,6 +7,7 @@ import time
 from cryptography.hazmat.primitives.asymmetric import rsa
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 class ReceiverApp:
     def __init__(self, master):
@@ -31,7 +32,7 @@ class ReceiverApp:
 
         self.label_message = tk.Label(master, text="Received Message:", bg="#EFEFEF", fg="#333333", font=("Arial", 12))
         self.label_message.pack()
-        self.text_received_message = tk.Text(master, height=5, bg="white", fg="#FFFFFF", font=("Arial", 12))
+        self.text_received_message = tk.Text(master, height=5, bg="white", fg="#333333", font=("Arial", 12))
         self.text_received_message.pack()
 
         self.label_info = tk.Label(master, text="", bg="#EFEFEF", fg="#333333", font=("Arial", 12))
@@ -76,15 +77,19 @@ class ReceiverApp:
             sender_socket, sender_address = self.receiver_socket.accept()
             print("Connection established with:", sender_address)
 
+            
             rsa_key_exchange = RSAKeyExchange()
             public_key = rsa_key_exchange.get_public_key()
             sender_socket.send(public_key)
-            time.sleep(1)
+
+            received_public_key_bytes = sender_socket.recv(4096)  # Receive the public key bytes
+            received_public_key = load_pem_public_key(received_public_key_bytes, backend=default_backend())
+
 
             certificate_bytes = sender_socket.recv(4096)
             certificate = cryptography.x509.load_pem_x509_certificate(certificate_bytes, default_backend())
 
-            if Authenticator.verify_certificate(certificate_bytes, certificate.public_key()):
+            if Authenticator.verify_certificate(certificate_bytes, received_public_key):
                 print("Certificate verified successfully.")
             else:
                 print("Certificate verification failed. Closing connection.")

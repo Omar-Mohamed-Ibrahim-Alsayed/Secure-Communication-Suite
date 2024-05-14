@@ -21,7 +21,7 @@ class KeyManager:
 
     def generate_keys(self):
         key = rsa.generate_private_key(public_exponent=65537,
-                                        key_size=1024,
+                                        key_size=2048,
                                         backend=default_backend())
         private_key_bytes = key.private_bytes( encoding=Encoding.PEM,  
                                 format=PrivateFormat.PKCS8, 
