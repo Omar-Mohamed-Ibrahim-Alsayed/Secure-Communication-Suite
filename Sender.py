@@ -17,30 +17,30 @@ sender_socket.connect(receiver_address)
 
 # User Authentication
 
-# authenticated = False
-# while not authenticated:
-#     choice = input("Do you want to [1] Sign Up or [2] Sign In? Enter 1 or 2: ")
+authenticated = False
+while not authenticated:
+    choice = input("Do you want to [1] Sign Up or [2] Sign In? Enter 1 or 2: ")
 
-#     if choice == '1':  # Sign Up
-#         username = input("Enter a new username: ")
-#         password = input("Enter a password: ")
-#         if Authenticator.signup(username, password):
-#             print("Signup successful.")
-#             authenticated = True
-#         else:
-#             print("Username already exists. Please choose a different username.")
+    if choice == '1':  # Sign Up
+        username = input("Enter a new username: ")
+        password = input("Enter a password: ")
+        if Authenticator.signup(username, password):
+            print("Signup successful.")
+            authenticated = True
+        else:
+            print("Username already exists. Please choose a different username.")
 
-#     elif choice == '2':  # Sign In
-#         username = input("Enter your username: ")
-#         password = input("Enter your password: ")
-#         if Authenticator.signin(username, password):
-#             print("Signin successful.")
-#             authenticated = True
-#         else:
-#             print("Invalid username or password.")
+    elif choice == '2':  # Sign In
+        username = input("Enter your username: ")
+        password = input("Enter your password: ")
+        if Authenticator.signin(username, password):
+            print("Signin successful.")
+            authenticated = True
+        else:
+            print("Invalid username or password.")
 
-#     else:
-#         print("Invalid choice.")
+    else:
+        print("Invalid choice.")
 
 
 
@@ -58,6 +58,7 @@ pub = keys.public_key().public_bytes(
 )
 sender_socket.send(pub)
 time.sleep(1)
+
 # Generate and send certificate 
 sender_certificate = Authenticator.generate_self_signed_certificate(keys, "sender_cert")
 print('Generated cert')
@@ -69,10 +70,10 @@ symmetric_key = km.generate_symm(received_public_key_bytes)
 keys = km.load_decrypted_keys('encrypted_keys.bin')
 print('Got keys')
 
+# Write the message
 plaintext_message = input("Enter the message you want to send: ")  
 
 # Encryption
-
 aes_cipher = AESCipher(symmetric_key)
 
 rsa_key_exchange = RSAKeyExchange()
@@ -83,6 +84,7 @@ rsa_key_exchange.set_received_public_key(received_public_key_bytes)
 
 
 try:
+    #encrypting the symm_key using the recievers key
     encrypted_symmetric_key = rsa_key_exchange.encrypt_symmetric_key(symmetric_key, received_public_key_bytes)
 
     padded_encrypted_symmetric_key = encrypted_symmetric_key + b'\0' * (256 - len(encrypted_symmetric_key))
