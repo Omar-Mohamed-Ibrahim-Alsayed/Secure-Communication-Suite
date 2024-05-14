@@ -1,12 +1,12 @@
 import socket
 from used_models.blockCiphers import AESCipher
 from used_models.PKC import RSAKeyExchange
-from used_models.authentication import Authenticator  # Import the Authenticator class
+from used_models.authentication import Authenticator 
 import time
 import cryptography.hazmat.primitives.serialization
 from used_models.keyManagement import KeyManager
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import Encoding,PublicFormat, PrivateFormat, NoEncryption
+
 
 sender_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 receiver_address = ('127.0.0.1', 8888)
@@ -49,6 +49,11 @@ received_public_key = sender_socket.recv(4096)
 
 # Key Generation 
 keys = km.generate_keys()
+pub = keys.public_key().public_bytes(
+    encoding=Encoding.PEM,  # Use PEM encoding for the public key
+    format=PublicFormat.SubjectPublicKeyInfo  # SubjectPublicKeyInfo format for the public key
+)
+sender_socket.send(pub)
 
 # Generate and send certificate 
 sender_certificate = Authenticator.generate_self_signed_certificate(keys, "sender_cert")

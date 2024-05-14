@@ -1,10 +1,11 @@
 import socket
 from used_models.blockCiphers import AESCipher
 from used_models.PKC import RSAKeyExchange
-from used_models.authentication import Authenticator  # Import the Authenticator class
+from used_models.authentication import Authenticator  
 import time
 import cryptography.x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 receiver_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 receiver_address = ('127.0.0.1', 8888)
@@ -44,12 +45,15 @@ print("Connection established with:", sender_address)
 rsa_key_exchange = RSAKeyExchange()
 public_key = rsa_key_exchange.get_public_key()
 sender_socket.send(public_key)
-time.sleep(1)
+
+received_public_key_bytes = sender_socket.recv(4096)  # Receive the public key bytes
+received_public_key = load_pem_public_key(received_public_key_bytes, backend=default_backend())
+
 
 certificate_bytes = sender_socket.recv(4096)
 certificate = cryptography.x509.load_pem_x509_certificate(certificate_bytes, default_backend())
 
-if Authenticator.verify_certificate(certificate_bytes, certificate.public_key()):
+if Authenticator.verify_certificate(certificate_bytes, received_public_key):
     print("Certificate verified successfully.")
 else:
     print("Certificate verification failed. Closing connection.")
