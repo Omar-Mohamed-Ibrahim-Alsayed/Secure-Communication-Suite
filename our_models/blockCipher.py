@@ -152,21 +152,7 @@ class _baseDes(object):
 		return data
 
 class des(_baseDes):
-	"""DES encryption/decrytpion class
-	Supports ECB (Electronic Code Book) and CBC (Cypher Block Chaining) modes.
-	pyDes.des(key,[mode], [IV])
-	key  -> Bytes containing the encryption key, must be exactly 8 bytes
-	mode -> Optional argument for encryption type, can be either pyDes.ECB
-		(Electronic Code Book), pyDes.CBC (Cypher Block Chaining)
-	IV   -> Optional Initial Value bytes, must be supplied if using CBC mode.
-		Must be 8 bytes in length.
-	pad  -> Optional argument, set the pad character (PAD_NORMAL) to use
-		during all encrypt/decrpt operations done with this instance.
-	padmode -> Optional argument, set the padding mode (PAD_NORMAL or
-		PAD_PKCS5) to use during all encrypt/decrpt operations done
-		with this instance.
-	"""
-
+	
 
 	# Permutation and translation tables for DES
 	__pc1 = [56, 48, 40, 32, 24, 16,  8,
@@ -580,23 +566,7 @@ class des(_baseDes):
 		return self._unpadData(data, pad, padmode)
 
 class triple_des(_baseDes):
-	"""Triple DES encryption/decrytpion class
-	This algorithm uses the DES-EDE3 (when a 24 byte key is supplied) or
-	the DES-EDE2 (when a 16 byte key is supplied) encryption methods.
-	Supports ECB (Electronic Code Book) and CBC (Cypher Block Chaining) modes.
-	pyDes.des(key, [mode], [IV])
-	key  -> Bytes containing the encryption key, must be either 16 or
-	        24 bytes long
-	mode -> Optional argument for encryption type, can be either pyDes.ECB
-		(Electronic Code Book), pyDes.CBC (Cypher Block Chaining)
-	IV   -> Optional Initial Value bytes, must be supplied if using CBC mode.
-		Must be 8 bytes in length.
-	pad  -> Optional argument, set the pad character (PAD_NORMAL) to use
-		during all encrypt/decrpt operations done with this instance.
-	padmode -> Optional argument, set the padding mode (PAD_NORMAL or
-		PAD_PKCS5) to use during all encrypt/decrpt operations done
-		with this instance.
-	"""
+	
 	def __init__(self, key, mode=ECB, IV=None, pad=None, padmode=PAD_NORMAL):
 		_baseDes.__init__(self, mode, IV, pad, padmode)
 		self.setKey(key)
@@ -653,16 +623,7 @@ class triple_des(_baseDes):
 			key.setIV(IV)
 
 	def encrypt(self, data, pad=None, padmode=None):
-		"""encrypt(data, [pad], [padmode]) -> bytes
-		data : bytes to be encrypted
-		pad  : Optional argument for encryption padding. Must only be one byte
-		padmode : Optional argument for overriding the padding mode.
-		The data must be a multiple of 8 bytes and will be encrypted
-		with the already specified key. Data does not have to be a
-		multiple of 8 bytes if the padding character is supplied, or
-		the padmode is set to PAD_PKCS5, as bytes will then added to
-		ensure the be padded data is a multiple of 8 bytes.
-		"""
+	
 		ENCRYPT = des.ENCRYPT
 		DECRYPT = des.DECRYPT
 		data = self._guardAgainstUnicode(data)
@@ -695,19 +656,7 @@ class triple_des(_baseDes):
 			return self.__key3.crypt(data, ENCRYPT)
 
 	def decrypt(self, data, pad=None, padmode=None):
-		"""decrypt(data, [pad], [padmode]) -> bytes
-		data : bytes to be encrypted
-		pad  : Optional argument for decryption padding. Must only be one byte
-		padmode : Optional argument for overriding the padding mode.
-		The data must be a multiple of 8 bytes and will be decrypted
-		with the already specified key. In PAD_NORMAL mode, if the
-		optional padding character is supplied, then the un-encrypted
-		data will have the padding characters removed from the end of
-		the bytes. This pad removal only occurs on the last 8 bytes of
-		the data (last data block). In PAD_PKCS5 mode, the special
-		padding end markers will be removed from the data after
-		decrypting, no pad character is required for PAD_PKCS5.
-		"""
+	
 		ENCRYPT = des.ENCRYPT
 		DECRYPT = des.DECRYPT
 		data = self._guardAgainstUnicode(data)

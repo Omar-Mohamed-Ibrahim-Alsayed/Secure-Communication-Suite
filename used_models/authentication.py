@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat
 from cryptography.hazmat.backends import default_backend
 from cryptography.exceptions import InvalidSignature
 from cryptography.x509.oid import NameOID
-from datetime import datetime, timedelta, timezone  # Import timezone here
+from datetime import datetime, timedelta, timezone  
 import pytz
 import json
 import hashlib
@@ -31,12 +31,12 @@ class Authenticator:
             data = {}
 
         if username in data:
-            return False  # Username already exists, return False
+            return False  
         else:
             data[username] = hashed_password
             with open('user_data.json', 'w') as file:
                 json.dump(data, file)
-            return True  # Signup successful, return True
+            return True  
 
     @staticmethod
     def signin(username, password):
@@ -65,25 +65,25 @@ class Authenticator:
 
     @staticmethod
     def generate_self_signed_certificate(private_key, subject_name, valid_days=365):
+        #AMO is the intials of our names
         subject = issuer = cryptography.x509.Name([
-            cryptography.x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-            cryptography.x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
-            cryptography.x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
-            cryptography.x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
-            cryptography.x509.NameAttribute(NameOID.COMMON_NAME, "mysite.com"),
+            cryptography.x509.NameAttribute(NameOID.COUNTRY_NAME, "EG"),
+            cryptography.x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Cairo"),
+            cryptography.x509.NameAttribute(NameOID.ORGANIZATION_NAME, "CNS_PROJ"),
+            cryptography.x509.NameAttribute(NameOID.COMMON_NAME, "AMO"),
         ])
         cert = cryptography.x509.CertificateBuilder().subject_name(
             subject
         ).issuer_name(
             issuer
         ).public_key(
-            private_key.public_key()  # Accessing the public key from private_key
+            private_key.public_key() 
         ).serial_number(
             cryptography.x509.random_serial_number()
         ).not_valid_before(
-            datetime.now(timezone.utc)  # Use timezone.utc here
+            datetime.now(timezone.utc)  
         ).not_valid_after(
-            datetime.now(timezone.utc) + timedelta(days=10)  # Use timezone.utc here
+            datetime.now(timezone.utc) + timedelta(days=2) 
         ).add_extension(
             cryptography.x509.SubjectAlternativeName([cryptography.x509.DNSName("localhost")]),
             critical=False,
@@ -103,7 +103,7 @@ class Authenticator:
             )
 
             issuer_common_name = cert.issuer.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-            expected_issuer_common_name = "mysite.com"  # Update with the expected issuer's common name
+            expected_issuer_common_name = "AMO"
             if issuer_common_name != expected_issuer_common_name:
                 return False
 
@@ -115,7 +115,7 @@ class Authenticator:
                 return False
 
             subject_common_name = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-            expected_subject_common_name = "mysite.com"  # Update with the expected subject's common name
+            expected_subject_common_name = "AMO"  
             if subject_common_name != expected_subject_common_name:
                 return False
 
