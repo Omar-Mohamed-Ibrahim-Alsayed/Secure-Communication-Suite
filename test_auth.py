@@ -47,7 +47,7 @@ certificate = auth.generate_self_signed_certificate(private_key, "mysite.com")
 certificate_path = "./certificate.pem"
 
 # Verify the generated certificate
-verified = auth.verify_certificate(certificate.public_bytes(encoding=serialization.Encoding.PEM), certificate.public_key())
+verified = auth.verify_certificate(certificate.public_bytes(encoding=serialization.Encoding.PEM), private_key.public_key())
 
 if verified:
     print("Certificate verification passed.")

@@ -3,10 +3,12 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
 import time
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import os
+from cryptography.hazmat.primitives.serialization import Encoding,PublicFormat, PrivateFormat, NoEncryption
 
 class KeyManager:
     def __init__(self, master_key=None):
@@ -18,9 +20,19 @@ class KeyManager:
         self.last_rotation_time = time.time()
 
     def generate_keys(self):
-        key = RSA.generate(1024)
-        private_key_bytes = key.export_key()
-        public_key_bytes = key.publickey().export_key()
+        key = rsa.generate_private_key(public_exponent=65537,
+                                        key_size=1024,
+                                        backend=default_backend())
+        private_key_bytes = key.private_bytes( encoding=Encoding.PEM,  
+                                format=PrivateFormat.PKCS8, 
+                                encryption_algorithm=NoEncryption() 
+                            )
+        
+        public_key = key.public_key()
+        public_key_bytes = public_key.public_bytes(
+                                encoding=Encoding.PEM,  # You can choose Encoding.PEM or Encoding.DER based on your preference
+                                format=PublicFormat.SubjectPublicKeyInfo  # This specifies the format of the public key
+                            )
         keys = {'private_key': private_key_bytes.decode('latin1'), 'public_key': public_key_bytes.decode('latin1')}
         self.last_rotation_time = time.time()
         self.store_encrypted_keys(keys, 'encrypted_keys.bin')

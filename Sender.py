@@ -51,13 +51,7 @@ received_public_key = sender_socket.recv(4096)
 keys = km.generate_keys()
 
 # Generate and send certificate 
-cert_key = rsa.generate_private_key(
-    public_exponent=65537,
-    key_size=2048,
-    backend=default_backend()
-)
-
-sender_certificate = Authenticator.generate_self_signed_certificate(cert_key, "sender_cert")
+sender_certificate = Authenticator.generate_self_signed_certificate(keys, "sender_cert")
 print('Generated cert')
 sender_socket.send(sender_certificate.public_bytes(encoding=cryptography.hazmat.primitives.serialization.Encoding.PEM))
 print('Sent cert')
