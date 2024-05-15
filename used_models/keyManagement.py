@@ -64,6 +64,7 @@ class KeyManager:
         current_time = time.time()
         time_left = self.last_rotation_time + self.key_rotation_interval - current_time
         if current_time - self.last_rotation_time > self.key_rotation_interval:
+            print("key expired generating new key")
             self.generate_keys()
             self.last_rotation_time = current_time
             time_left = self.key_rotation_interval

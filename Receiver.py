@@ -98,12 +98,12 @@ try:
     #Decrypt message
     aes_cipher = AESCipher(decrypted_symmetric_key)
     decrypted_message = aes_cipher.decrypt(encrypted_message)
-    print("Decrypted Message with AES:", decrypted_message)  # Add this line for debugging
+    print("Decrypted Message with AES:", decrypted_message) 
 
 except ValueError as e:
     print("Error decrypting symmetric key or message:", e)
     import traceback
-    traceback.print_exc()  # Print full traceback for detailed error analysis
+    traceback.print_exc()  
 
 sender_socket.close()
 receiver_socket.close()

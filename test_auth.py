@@ -24,35 +24,35 @@ import time
 
 #-------------------------------------------------------Certificate tests------------------------------------------
 
-from used_models.authentication import Authenticator
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-import os
-from datetime import datetime, timedelta, timezone  # Import timezone separately
+# from used_models.authentication import Authenticator
+# from cryptography.hazmat.primitives.asymmetric import rsa
+# from cryptography.hazmat.backends import default_backend
+# from cryptography.hazmat.primitives import serialization
+# import os
+# from datetime import datetime, timedelta, timezone  # Import timezone separately
 
-# Generate a private key
-private_key = rsa.generate_private_key(
-    public_exponent=65537,
-    key_size=2048,
-    backend=default_backend()
-)
+# # Generate a private key
+# private_key = rsa.generate_private_key(
+#     public_exponent=65537,
+#     key_size=2048,
+#     backend=default_backend()
+# )
 
-auth = Authenticator()
+# auth = Authenticator()
 
-# Generate the self-signed certificate
-certificate = auth.generate_self_signed_certificate(private_key, "mysite.com")
+# # Generate the self-signed certificate
+# certificate = auth.generate_self_signed_certificate(private_key, "mysite.com")
 
-# Specify the full path for the certificate file
-certificate_path = "./certificate.pem"
+# # Specify the full path for the certificate file
+# certificate_path = "./certificate.pem"
 
-# Verify the generated certificate
-verified = auth.verify_certificate(certificate.public_bytes(encoding=serialization.Encoding.PEM), private_key.public_key())
+# # Verify the generated certificate
+# verified = auth.verify_certificate(certificate.public_bytes(encoding=serialization.Encoding.PEM), private_key.public_key())
 
-if verified:
-    print("Certificate verification passed.")
-else:
-    print("Certificate verification failed.")
+# if verified:
+#     print("Certificate verification passed.")
+# else:
+#     print("Certificate verification failed.")
 
 #-------------------------------------------------------User auth tests------------------------------------------
 
@@ -73,3 +73,8 @@ else:
 # assert not Authenticator.signin("nonexistentuser", "password1")
 
 # print("All tests passed successfully!")
+import json
+
+with open('user_data.json', 'r') as file:
+    data = json.load(file)
+    print(data)
